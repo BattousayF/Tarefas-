@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Oficina · PAIZINHO</title>
+<link rel="apple-touch-icon" href="icone-oficina.png">
+<link rel="icon" type="image/png" href="icone-oficina.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Oficina">
+<meta name="theme-color" content="#14100c">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#14100c; --panel:#1e1811; --panel2:#27201666; --line:#3a2f1f;
+  --gold:#c9a05a; --gold-soft:#c9a05a33; --cream:#efe6d4; --muted:#9a8a6e;
+  --ok:#7fb069; --prob:#d06a5a; --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--cream);font-family:'Inter',system-ui,sans-serif;
+  font-size:15px;line-height:1.45;padding-bottom:env(safe-area-inset-bottom)}
+#app{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+
+header{padding:20px 18px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:10px}
+header .brand{font-family:'Fraunces',serif;font-weight:700;font-size:20px;
+  letter-spacing:.14em;color:var(--gold)}
+header .sub{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+header .tabs{margin-left:auto;display:flex;gap:4px}
+header .tabs button{background:none;border:none;color:var(--muted);font:600 13px 'Inter';
+  padding:6px 10px;border-radius:8px;cursor:pointer}
+header .tabs button.active{color:var(--gold);background:var(--gold-soft)}
+
+main{flex:1;padding:16px 18px 32px}
+h2.page{font-family:'Fraunces',serif;font-weight:600;font-size:24px;margin:4px 0 4px}
+p.hint{color:var(--muted);font-size:13px;margin-bottom:16px}
+.section-label{font-size:12px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.08em;margin:20px 0 10px}
+
+/* ---------- task rows ---------- */
+.task{display:flex;align-items:center;gap:12px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 14px;margin-bottom:10px}
+.task .counter{flex:none;min-width:52px;height:52px;border-radius:14px;
+  border:1.5px solid var(--line);background:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:var(--cream);transition:all .15s;padding:0 6px}
+.task .counter .num{font:700 16px 'Inter'}
+.task .counter .lbl{font-size:9.5px;color:var(--muted);letter-spacing:.04em}
+.task .counter.ok{border-color:var(--ok);background:#7fb06922}
+.task .counter.ok .num{color:var(--ok)}
+.task .counter.prob{border-color:var(--prob);background:#d06a5a22}
+.task .counter.prob .num{color:var(--prob)}
+.task .body{flex:1;cursor:pointer;min-width:0}
+.task .name{font-weight:500;font-size:14.5px}
+.task .cat{font-size:11.5px;color:var(--muted);margin-top:1px}
+.task .note-flag{font-size:11.5px;color:var(--gold);margin-top:2px}
+.task .note-flag::before{content:"✎ "}
+.task .chev{color:var(--line);font-size:18px;flex:none}
+
+/* inlays de progresso por unidade */
+.units{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.unit{width:9px;height:9px;border-radius:50%;background:var(--panel2);border:1px solid var(--line)}
+.unit.done{background:var(--gold);border-color:var(--gold)}
+
+.task.arch{opacity:.85}
+.task.arch .counter{cursor:default}
+.task .date{font-size:11px;color:var(--muted);margin-top:2px}
+
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--gold);color:#1a140d;
+  border:none;border-radius:10px;font:600 14px 'Inter',sans-serif;
+  padding:11px 16px;cursor:pointer}
+.btn.ghost{background:none;color:var(--gold);border:1px solid var(--gold-soft)}
+.btn.danger{background:none;color:var(--prob);border:1px solid #d06a5a44}
+.btn.small{padding:7px 12px;font-size:13px;border-radius:8px}
+.btn:focus-visible{outline:2px solid var(--cream);outline-offset:2px}
+.toolbar{display:flex;gap:10px;margin:14px 0 4px;flex-wrap:wrap}
+
+/* ---------- sheet ---------- */
+.overlay{position:fixed;inset:0;background:#000a;z-index:50;
+  display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--panel);border:1px solid var(--line);border-bottom:none;
+  border-radius:18px 18px 0 0;width:100%;max-width:560px;
+  padding:20px 18px calc(24px + env(safe-area-inset-bottom));
+  max-height:88vh;overflow-y:auto}
+.sheet h3{font-family:'Fraunces',serif;font-weight:600;font-size:19px;margin-bottom:2px}
+.sheet .sub{color:var(--muted);font-size:12.5px;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:6px}
+.field input[type=text],.field textarea{width:100%;background:var(--bg);
+  border:1px solid var(--line);border-radius:10px;color:var(--cream);
+  font:inherit;padding:11px 12px}
+.field textarea{min-height:110px;resize:vertical}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+
+.pick-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.pick-grid button{text-align:left;background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;color:var(--cream);font:500 14px 'Inter';
+  padding:13px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.pick-grid button:hover,.pick-grid button:focus-visible{border-color:var(--gold)}
+.pick-grid button .n{color:var(--muted);font-size:12px}
+
+.stepper{display:flex;align-items:center;gap:16px;justify-content:center;margin:10px 0 4px}
+.stepper button{width:52px;height:52px;border-radius:50%;background:var(--bg);
+  border:1.5px solid var(--gold-soft);color:var(--gold);font:700 24px 'Inter';cursor:pointer}
+.stepper .qty{font:700 34px 'Fraunces',serif;min-width:60px;text-align:center}
+.stepper-hint{text-align:center;color:var(--muted);font-size:12.5px;margin-bottom:14px}
+
+.status-picker{display:flex;gap:8px;margin-bottom:16px}
+.status-picker button{flex:1;padding:11px 6px;border-radius:10px;font:600 13px 'Inter';
+  background:var(--bg);border:1.5px solid var(--line);color:var(--muted);cursor:pointer}
+.status-picker button.sel-ativo{border-color:var(--cream);color:var(--cream)}
+.status-picker button.sel-ok{border-color:var(--ok);color:var(--ok);background:#7fb06918}
+.status-picker button.sel-prob{border-color:var(--prob);color:var(--prob);background:#d06a5a18}
+
+.done-stepper{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.done-stepper button{width:44px;height:44px;border-radius:50%;background:var(--bg);
+  border:1.5px solid var(--gold-soft);color:var(--gold);font:700 20px 'Inter';cursor:pointer}
+.done-stepper .val{font:700 22px 'Fraunces',serif}
+.done-stepper .of{color:var(--muted);font-size:14px}
+
+.sheet .actions{display:flex;gap:10px;margin-top:6px}
+.sheet .actions .btn{flex:1;justify-content:center}
+.sheet .del-row{margin-top:14px;text-align:center}
+
+.empty{text-align:center;color:var(--muted);padding:40px 20px;
+  border:1px dashed var(--line);border-radius:var(--radius);font-size:14px}
+.footer-note{text-align:center;color:#5c503c;font-size:11px;padding:0 18px 22px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ================= armazenamento ================= */
+const KEY='oficina-paizinho-v2';
+const mem={};
+const store={
+  get(){ try{ return JSON.parse(localStorage.getItem(KEY)) || null }catch(e){ return mem[KEY]||null } },
+  set(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)) }catch(e){ mem[KEY]=v } }
+};
+const uid=()=>Math.random().toString(36).slice(2,9);
+
+/* ================= catálogo de categorias e tarefas ================= */
+const DEFAULT_CATALOG=[
+  {id:'caixa',name:'Caixa',tasks:[
+    'Unir metades do tampo','Unir metades do fundo','Laterais na espessura',
+    'Dobrar laterais','Colar trócolo','Colar culatra','Reengrosso',
+    'Estruturar fundo','Fazer roseta','Estruturar tampo',
+    'Colar fundo nas laterais','Colar tampo nas laterais','Filetar']},
+  {id:'braco',name:'Braço',tasks:[
+    'Preparar colagem do ângulo do braço','Colagem com reforço',
+    'Preparar frontal','Preparar traseiro','Colar salto','Fazer a mão','Esculpir braço']},
+  {id:'escala',name:'Escala e montagem do braço',tasks:[
+    'Preparar escala (eslotar)','Encaixe do braço no corpo','Colar escala no braço',
+    'Colar braço + escala no corpo','Fretwork','Shape do braço','Lixa total (acabamento)']},
+  {id:'verniz',name:'Verniz',tasks:[
+    'Demão de verniz','Lixar entre demãos','Polimento']},
+  {id:'montagem',name:'Montagem final',tasks:[
+    'Fazer cavalete','Colar cavalete','Fazer rastilho','Fazer pestana',
+    'Colocar tarraxas','Colocar cordas e captador']}
+];
+
+/* ================= estado ================= */
+let state = store.get() || { tasks:[], archive:[], catalog:DEFAULT_CATALOG };
+if(!state.catalog) state.catalog=DEFAULT_CATALOG;
+let view='hoje'; // 'hoje' | 'historico'
+let sheet=null;
+
+function save(){ store.set(state) }
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate=iso=>{ if(!iso)return''; return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) };
+const catName=id=>{ const c=state.catalog.find(c=>c.id===id); return c?c.name:'' };
+
+/* ================= render ================= */
+function render(){
+  const app=document.getElementById('app');
+  let html=`
+  <header>
+    <span class="brand">PAIZINHO</span>
+    <span class="sub">Oficina</span>
+    <nav class="tabs">
+      <button class="${view==='hoje'?'active':''}" onclick="setView('hoje')">Tarefas</button>
+      <button class="${view==='historico'?'active':''}" onclick="setView('historico')">Histórico</button>
+    </nav>
+  </header>
+  <main>`;
+
+  if(view==='hoje'){
+    const ativas = state.tasks.filter(t=>t.status==='ativo'||t.done<t.qty);
+    const prontas = state.tasks.filter(t=>!(t.status==='ativo'||t.done<t.qty));
+
+    html+=`<h2 class="page">Tarefas</h2>
+    <p class="hint">Toque no contador pra marcar +1 unidade feita. Toque no nome pra abrir detalhes.</p>`;
+
+    if(state.tasks.length===0){
+      html+=`<div class="empty">Nenhuma tarefa na bancada.<br>Adicione a primeira do dia.</div>`;
+    }
+
+    const row=(t,arch)=>{
+      const full = t.done>=t.qty;
+      const st = t.status==='prob'?'prob': full?'ok':'';
+      return `<div class="task ${arch?'arch':''}">
+        <button class="counter ${st}" ${arch?'':`onclick="inc('${t.id}')"`} aria-label="marcar unidade feita">
+          <span class="num">${t.done}/${t.qty}</span>
+          <span class="lbl">${t.status==='prob'?'problema': full?'feito':'feitos'}</span>
+        </button>
+        <div class="body" tabindex="0" role="button" onclick="openTask('${t.id}')" onkeydown="if(event.key==='Enter')openTask('${t.id}')">
+          <div class="name">${esc(t.name)}</div>
+          <div class="cat">${esc(catName(t.cat))} · ${t.qty} ${t.qty>1?'instrumentos':'instrumento'}</div>
+          <div class="units">${Array.from({length:t.qty},(_,i)=>`<span class="unit ${i<t.done?'done':''}"></span>`).join('')}</div>
+          ${t.notes?`<div class="note-flag">tem observação</div>`:''}
+        </div>
+        <span class="chev">›</span>
+      </div>`;
+    };
+
+    ativas.forEach(t=>html+=row(t,false));
+
+    if(prontas.length){
+      html+=`<div class="section-label">Concluídas — toque em arquivar pra tirar da lista</div>`;
+      prontas.forEach(t=>html+=row(t,false));
+      html+=`<div class="toolbar"><button class="btn ghost small" onclick="archiveDone()">Arquivar concluídas ↓</button></div>`;
+    }
+
+    html+=`<div class="toolbar">
+      <button class="btn" onclick="openSheet({type:'pickCat'})">+ Nova tarefa</button>
+    </div>`;
+  }
+
+  if(view==='historico'){
+    html+=`<h2 class="page">Histórico</h2>
+    <p class="hint">O que já passou pela bancada — com o que deu certo e o que deu problema.</p>`;
+    if(state.archive.length===0){
+      html+=`<div class="empty">Nada arquivado ainda.</div>`;
+    }
+    [...state.archive].reverse().forEach(t=>{
+      html+=`<div class="task arch">
+        <div class="counter ${t.status==='prob'?'prob':'ok'}">
+          <span class="num">${t.done}/${t.qty}</span>
+          <span class="lbl">${t.status==='prob'?'problema':'feito'}</span>
+        </div>
+        <div class="body" tabindex="0" role="button" onclick="openArch('${t.id}')" onkeydown="if(event.key==='Enter')openArch('${t.id}')">
+          <div class="name">${esc(t.name)}</div>
+          <div class="cat">${esc(catName(t.cat))}</div>
+          <div class="date">arquivado em ${fmtDate(t.archivedAt)}</div>
+          ${t.notes?`<div class="note-flag">tem observação</div>`:''}
+        </div>
+        <span class="chev">›</span>
+      </div>`;
+    });
+    if(state.archive.length){
+      html+=`<div class="toolbar"><button class="btn danger small" onclick="clearArchive()">Limpar histórico</button></div>`;
+    }
+  }
+
+  html+=`</main>
+  <div class="footer-note">Oficina PAIZINHO · os dados ficam salvos neste navegador</div>`;
+  if(sheet) html+=renderSheet();
+  app.innerHTML=html;
+  const f=document.querySelector('.sheet input[type=text]');
+  if(f && sheet && sheet.focus){ f.focus(); sheet.focus=false }
+}
+
+function renderSheet(){
+  /* passo 1: escolher categoria */
+  if(sheet.type==='pickCat'){
+    return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
+      <h3>Nova tarefa</h3><div class="sub">Primeiro, escolha a categoria.</div>
+      <div class="pick-grid">
+        ${state.catalog.map(c=>`<button onclick="pickCat('${c.id}')">${esc(c.name)}<span class="n">${c.tasks.length} tarefas ›</span></button>`).join('')}
+      </div>
+      <div class="actions"><button class="btn ghost" onclick="closeSheet()">Cancelar</button></div>
+    </div></div>`;
+  }
+  /* passo 2: escolher a tarefa da categoria */
+  if(sheet.type==='pickTask'){
+    const c=state.catalog.find(c=>c.id===sheet.cat);
+    return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
+      <h3>${esc(c.name)}</h3><div class="sub">Escolha a tarefa, ou escreva uma nova.</div>
+      <div class="pick-grid">
+        ${c.tasks.map((t,i)=>`<button onclick="pickTask(${i})">${esc(t)}</button>`).join('')}
+      </div>
+      <div class="field" style="margin-top:12px"><label>Ou tarefa nova</label>
+        <input type="text" id="customTask" placeholder="Escreva e toque em usar..."
+          onkeydown="if(event.key==='Enter')useCustom()">
+      </div>
+      <div class="actions">
+        <button class="btn ghost" onclick="openSheet({type:'pickCat'})">‹ Voltar</button>
+        <button class="btn" onclick="useCustom()">Usar tarefa nova</button>
+      </div>
+    </div></div>`;
+  }
+  /* passo 3: quantidade */
+  if(sheet.type==='qty'){
+    return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
+      <h3>${esc(sheet.name)}</h3><div class="sub">${esc(catName(sheet.cat))}</div>
+      <div class="field"><label>Quantos instrumentos envolvidos?</label></div>
+      <div class="stepper">
+        <button onclick="qtyDelta(-1)">−</button>
+        <span class="qty">${sheet.qty}</span>
+        <button onclick="qtyDelta(1)">+</button>
+      </div>
+      <div class="stepper-hint">Ex.: 3 rosetas = três instrumentos nessa tarefa</div>
+      <div class="actions">
+        <button class="btn ghost" onclick="openSheet({type:'pickCat'})">‹ Voltar</button>
+        <button class="btn" onclick="createTask()">Adicionar à lista</button>
+      </div>
+    </div></div>`;
+  }
+  /* detalhe da tarefa ativa */
+  if(sheet.type==='task'){
+    const t=state.tasks.find(x=>x.id===sheet.taskId);
+    return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
+      <h3>${esc(t.name)}</h3>
+      <div class="sub">${esc(catName(t.cat))} · criada em ${fmtDate(t.createdAt)}</div>
+      <div class="field"><label>Unidades feitas</label></div>
+      <div class="done-stepper">
+        <button onclick="doneDelta('${t.id}',-1)">−</button>
+        <span class="val">${t.done}</span><span class="of">de ${t.qty}</span>
+        <button onclick="doneDelta('${t.id}',1)">+</button>
+      </div>
+      <div class="status-picker">
+        <button class="${t.status==='ativo'?'sel-ativo':''}" onclick="setStatus('${t.id}','ativo')">Em andamento</button>
+        <button class="${t.status==='ok'?'sel-ok':''}" onclick="setStatus('${t.id}','ok')">✓ Deu certo</button>
+        <button class="${t.status==='prob'?'sel-prob':''}" onclick="setStatus('${t.id}','prob')">✕ Problema</button>
+      </div>
+      <div class="field"><label>Observações / ajustes</label>
+        <textarea id="taskNotes" placeholder="Ex.: qual instrumento deu problema, medições, o que ajustar...">${esc(t.notes)}</textarea>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" onclick="closeSheet()">Cancelar</button>
+        <button class="btn" onclick="saveTask('${t.id}')">Salvar</button>
+      </div>
+      <div class="del-row">
+        <button class="btn ghost small" onclick="archiveOne('${t.id}')">Arquivar ↓</button>
+        <button class="btn danger small" onclick="delTask('${t.id}')">Excluir</button>
+      </div>
+    </div></div>`;
+  }
+  /* detalhe do histórico */
+  if(sheet.type==='arch'){
+    const t=state.archive.find(x=>x.id===sheet.taskId);
+    return `<div class="overlay" onclick="if(event.target===this)closeSheet()"><div class="sheet">
+      <h3>${esc(t.name)}</h3>
+      <div class="sub">${esc(catName(t.cat))} · ${t.done}/${t.qty} · ${t.status==='prob'?'teve problema':'deu certo'} · ${fmtDate(t.archivedAt)}</div>
+      ${t.notes?`<div class="field"><label>Observações</label><div style="background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;white-space:pre-wrap">${esc(t.notes)}</div></div>`:'<div class="sub">Sem observações.</div>'}
+      <div class="actions">
+        <button class="btn ghost" onclick="closeSheet()">Fechar</button>
+        <button class="btn" onclick="restoreArch('${t.id}')">↑ Voltar pra lista</button>
+      </div>
+    </div></div>`;
+  }
+  return '';
+}
+
+/* ================= ações ================= */
+function setView(v){ view=v; sheet=null; render() }
+function openSheet(s){ sheet=s; sheet.focus=true; render() }
+function closeSheet(){ sheet=null; render() }
+
+function pickCat(id){ openSheet({type:'pickTask',cat:id}) }
+function pickTask(i){
+  const c=state.catalog.find(c=>c.id===sheet.cat);
+  openSheet({type:'qty',cat:sheet.cat,name:c.tasks[i],qty:1});
+}
+function useCustom(){
+  const n=document.getElementById('customTask').value.trim(); if(!n)return;
+  const c=state.catalog.find(c=>c.id===sheet.cat);
+  if(!c.tasks.includes(n)) c.tasks.push(n); /* aprende a tarefa nova pro futuro */
+  save();
+  openSheet({type:'qty',cat:sheet.cat,name:n,qty:1});
+}
+function qtyDelta(d){ sheet.qty=Math.max(1,Math.min(30,sheet.qty+d)); render() }
+function createTask(){
+  state.tasks.push({id:uid(),name:sheet.name,cat:sheet.cat,qty:sheet.qty,done:0,
+    status:'ativo',notes:'',createdAt:new Date().toISOString()});
+  save(); closeSheet();
+}
+function openTask(id){ openSheet({type:'task',taskId:id}) }
+function openArch(id){ openSheet({type:'arch',taskId:id}) }
+
+function inc(id){
+  const t=state.tasks.find(x=>x.id===id);
+  if(t.done<t.qty){ t.done++; if(t.done>=t.qty && t.status==='ativo') t.status='ok' }
+  save(); render();
+}
+function doneDelta(id,d){
+  const t=state.tasks.find(x=>x.id===id);
+  t.done=Math.max(0,Math.min(t.qty,t.done+d));
+  if(t.done>=t.qty && t.status==='ativo') t.status='ok';
+  if(t.done<t.qty && t.status==='ok') t.status='ativo';
+  save(); render();
+}
+function setStatus(id,s){
+  const t=state.tasks.find(x=>x.id===id); t.status=s; save(); render();
+}
+function saveTask(id){
+  const t=state.tasks.find(x=>x.id===id);
+  t.notes=document.getElementById('taskNotes').value;
+  save(); closeSheet();
+}
+function delTask(id){
+  if(!confirm('Excluir esta tarefa?'))return;
+  state.tasks=state.tasks.filter(t=>t.id!==id); save(); closeSheet();
+}
+function archiveOne(id){
+  const t=state.tasks.find(x=>x.id===id);
+  if(sheet && sheet.type==='task'){ t.notes=document.getElementById('taskNotes').value }
+  t.archivedAt=new Date().toISOString();
+  if(t.status==='ativo') t.status = t.done>=t.qty?'ok':'prob';
+  state.archive.push(t);
+  state.tasks=state.tasks.filter(x=>x.id!==id);
+  save(); closeSheet();
+}
+function archiveDone(){
+  const done=state.tasks.filter(t=>!(t.status==='ativo'||t.done<t.qty));
+  done.forEach(t=>{ t.archivedAt=new Date().toISOString(); state.archive.push(t) });
+  state.tasks=state.tasks.filter(t=>t.status==='ativo'||t.done<t.qty);
+  save(); render();
+}
+function restoreArch(id){
+  const t=state.archive.find(x=>x.id===id);
+  t.status='ativo'; delete t.archivedAt;
+  state.tasks.push(t);
+  state.archive=state.archive.filter(x=>x.id!==id);
+  save(); setView('hoje');
+}
+function clearArchive(){
+  if(!confirm('Apagar todo o histórico? Isso não tem volta.'))return;
+  state.archive=[]; save(); render();
+}
+
+render();
+</script>
+</body>
+</html>
